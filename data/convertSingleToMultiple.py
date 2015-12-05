@@ -22,7 +22,7 @@ def main():
 				counter = process(lines, first_line, counter, filename)
 				lines = []
 	    if len(lines) > 0:
-	        process(lines)
+	        process(lines, first_line, counter, filename)
 
 def process(lines, first_line, counter, filename):
 	write_file = '{}/{}_{}.csv'.format(filename, filename, counter)
