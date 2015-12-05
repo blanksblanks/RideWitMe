@@ -12,3 +12,4 @@ for i in range(len(Lines)):
 		output.write(firstLine);
 		output.write(Lines[i + 500])
 		counter = counter  + 1
+		print 'filename{}.txt'.format(counter)
