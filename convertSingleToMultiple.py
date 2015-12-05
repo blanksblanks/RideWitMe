@@ -1,5 +1,5 @@
-
-f = open('station_snapshots_text.txt', 'r')
+csv_file = 'station_snapshots_20151129.csv'
+f = open(csv_file, "r");
 
 Lines = f.readlines()
 
