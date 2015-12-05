@@ -20,18 +20,17 @@ def main():
 	        lines.append(line)
 	        if len(lines) > N:
 				counter = process(lines, first_line, counter, filename)
-				print counter
 				lines = []
 	    if len(lines) > 0:
 	        process(lines)
 
 def process(lines, first_line, counter, filename):
 	write_file = '{}/{}_{}.csv'.format(filename, filename, counter)
+	print write_file
 	output = open(write_file, 'w')
 	output.write(first_line)
 	for line in lines:
 		output.write(line)
-	print write_file
 	return counter + 1
 
 if __name__ == "__main__":
