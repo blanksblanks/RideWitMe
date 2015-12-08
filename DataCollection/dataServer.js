@@ -35,27 +35,27 @@ var server = http.createServer(app).listen(app.get('port'), function() {
 });
 
 app.get('/', function(req, res) {
-	res.send("Hello from the other side! :)");
-});
+	// res.send("Hello from the other side! :)");
+
     //Get the data from the files and put into the db. Do it only once.
 
 
-
-
-//     //Continue getting data from the citibike realtime api at regular intervals and update the db
-//     request.post('http://www.citibikenyc.com/stations/json', {
-//         headers: {
-//             'Content-Type': 'application/json'
-//         },
-//         form: {
-//             outputMode: "json"
-//         },
-//         json: true
-//     }, function(err, res, resultBody) {
-//      	var body = JSON.parse(JSON.stringify(resultBody));
+    //Continue getting data from the citibike realtime api at regular intervals and update the db
+    request.post('http://www.citibikenyc.com/stations/json', {
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        form: {
+            outputMode: "json"
+        },
+        json: true
+    }, function(err, res, resultBody) {
+     	var body = JSON.parse(JSON.stringify(resultBody));
 	
-//      	var currentTime = new Date();
-	
+		console.log(body);
+     	// var currentTime = new Date();
+	});
+});
     
 // 		for (dataEntry in body.stationBeanList) {
 // 		    	var stationStatusSchema = {
