@@ -9,6 +9,7 @@ var path = require('path');
 var request = require('request');
 var AWS = require('aws-sdk');
 var awsRegion = 'us-east-1';
+var dataCollection = require('./DataCollection/dataCollect');
 
 AWS.config.update({
     accessKeyId: (process.env.awsAccessKey || keys.awsKeys.accessKey),
@@ -21,7 +22,8 @@ var app = express();
 app.set('port', process.env.PORT || 3000);
 
 //Setting up middleware services
-app.use(express.static('public'));
+app.use('/static', express.static(__dirname + '/public'));
+app.use('/static', express.static(__dirname + '/data'));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
@@ -36,3 +38,7 @@ app.get('/', function(req, res) {
 	res.sendFile(path.join(__dirname, './views', 'index.html'));
 	// res.send("Hello from the other side! :)");
 });
+
+
+//Collect data
+dataCollection.startDataCollection();
