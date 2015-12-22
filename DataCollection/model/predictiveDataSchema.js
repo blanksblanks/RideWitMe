@@ -11,6 +11,9 @@ dynamoose.AWS.config.update({
   region: (process.env.awsRegion || 'us-east-1')
 });
 
+var schemaOptions = {
+  throughput: { read: 2, write: 45 }
+};
 
 var stationStatusSchema = new dynamoose.Schema({
 	station_id: { type: Number, required: true, hashKey: true}, 
@@ -18,10 +21,13 @@ var stationStatusSchema = new dynamoose.Schema({
 	available_bike_count: { type: Number },
 	available_dock_count: { type: Number },
 	type_of_data: { type: String, required: true }, //Specifies if the data is old or new
-	station_summary_id: { type: Number, required: true },
+	station_summary_id: { type: Number, required: true, rangeKey: true },
+	comm_hour: { type: Number },
+	comm_min: { type: Number },
+	comm_second: { type: Number },
 	last_communication_time: { type: Number },
-	created_at: { type: Number, rangeKey: true, required: true }
-});
+	created_at: { type: Number, required: true }
+}, schemaOptions);
 
 var stationDetailsSchema = new dynamoose.Schema({
 	station_id: { type: Number, required: true, unique: true, hashKey: true}, 
@@ -29,6 +35,8 @@ var stationDetailsSchema = new dynamoose.Schema({
 	longitude: { type: Number, required: true },
 	station_label: { type: String },
 	created_at: { type: Number }
+}, {
+  throughput: { read: 2, write: 5 }
 });
 
 // var activeStationsSchema = new dynamoose.Schema({

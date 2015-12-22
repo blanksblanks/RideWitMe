@@ -18,7 +18,7 @@ var collectData = function() {
     }, function(err, res, resultBody) {
      	var body = JSON.parse(JSON.stringify(resultBody));
 	
-		console.log(body.stationBeanList[0]);
+		// console.log(body.stationBeanList[0]);
 
      	var unixTimeStamp = new Date().getTime(); //Use the unix timestamp as the station summary id(i.e. snapshot id)
      	var allStationStatuses = [];
@@ -26,6 +26,8 @@ var collectData = function() {
      	for (var i = 0; i < body.stationBeanList.length; i++) {
      		var dataEntry = body.stationBeanList[i];
      		// console.log(dataEntry);
+
+     		var newDate = new Date(dataEntry.lastCommunicationTime);
      		
 		   	var stationStatus = {
 				station_id: dataEntry.id, 
@@ -34,7 +36,10 @@ var collectData = function() {
 				available_dock_count: dataEntry.availableDocks,
 				type_of_data: "New",
 				station_summary_id: Math.round(unixTimeStamp/1000),
-				last_communication_time: new Date(dataEntry.lastCommunicationTime).getTime(),
+				comm_hour: newDate.getHours(),
+				comm_min: newDate.getMinutes(),
+				comm_second: newDate.getSeconds(),
+				last_communication_time: newDate.getTime(),
 				created_at: unixTimeStamp
 			};
 
@@ -141,6 +146,7 @@ function addDataFromCSV() {
 	        options.overwrite = false; 
 
 	        files.forEach( function( file, index ) {
+	      
 	        	console.log("##### Now serving file: " + file + " #####");
 	        	var allStationStatusesArr = [];
 	            // Make one pass and make the file complete
@@ -171,6 +177,8 @@ function addDataFromCSV() {
 	            		console.log("continuing");
 	            		continue;
 	            	}
+
+	            	var comm_Date = new Date(fields[5]);
 	            	var stationStatus = {
 						station_id: actual_station_id, 
 						station_status: fields[2],
@@ -178,8 +186,11 @@ function addDataFromCSV() {
 						available_dock_count: parseInt(fields[4]),
 						type_of_data: "Old",
 						station_summary_id: parseInt(fields[6]),
-						last_communication_time: new Date(fields[5]).getTime(),
-						created_at: new Date(fields[5]).getTime()
+						comm_hour: comm_Date.getHours(),
+						comm_min: comm_Date.getMinutes(),
+						comm_second: comm_Date.getSeconds(),
+						last_communication_time: comm_Date.getTime(),
+						created_at: comm_Date.getTime()
 					};
 
 					allStationStatusesArr.push(stationStatus);
@@ -199,7 +210,6 @@ function addDataFromCSV() {
 		});
 	});
 }
-
 
 
 function startDataCollection() {

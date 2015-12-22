@@ -7,15 +7,8 @@ var logger = require('morgan');
 var keys = require('./config/access');
 var path = require('path');
 var request = require('request');
-var AWS = require('aws-sdk');
-var awsRegion = 'us-east-1';
-var dataCollection = require('./DataCollection/dataCollect');
-
-AWS.config.update({
-    accessKeyId: (process.env.awsAccessKey || keys.awsKeys.accessKey),
-    secretAccessKey: (process.env.awsAccessKeySecret || keys.awsKeys.accessKeySecret),
-    region: (process.env.awsRegion || 'us-east-1')
-});
+var mysql = require('mysql');
+var liveDataCollection = require('./DataCollection/liveDataCollect');
 
 var app = express();
 
@@ -30,15 +23,29 @@ app.use(bodyParser.urlencoded({
     extended: false
 }));
 
-var server = http.createServer(app).listen(app.get('port'), function() {
-    console.log("Main Server started on port: " + app.get('port'));
+app.get('/', function(){
+	console.log("Hello!");
 });
 
-app.get('/', function(req, res) {
-	res.sendFile(path.join(__dirname, './views', 'index.html'));
-	// res.send("Hello from the other side! :)");
+var connection = mysql.createConnection({
+  host     : keys.mysql.url,
+  user     : keys.mysql.username,
+  password : keys.mysql.password,
+  database : keys.mysql.database,
+  port : 3306
 });
 
+connection.connect(function(err){
+if(!err) {
+    console.log("Database is connected ... \n");    
+} else {
+    console.log("Error connecting database ... \n");    
+}
+});
+
+app.listen(app.get('port'), function() {
+    console.log("Main server started on port: " + app.get('port'));
+});
 
 //Collect data
-dataCollection.startDataCollection();
+liveDataCollection.startLiveDataCollection(connection);
