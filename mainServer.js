@@ -4,13 +4,14 @@ var http = require('http');
 var express = require('express');
 var bodyParser = require('body-parser');
 var logger = require('morgan');
+var async = require('async');
 var keys = require('./config/access');
 var path = require('path');
 var request = require('request');
 var mysql = require('mysql');
 var findClosestAndNearestPoint = require('./RoutingModule/findClosestAndNearestPointTurf');
 var findRoutes = require('./RoutingModule/findRoutes');
-
+var findSurfaceDetails = require('./RoutingModule/findSurfaceDetails');
 
 var app = express();
 
@@ -25,38 +26,39 @@ app.use(bodyParser.urlencoded({
     extended: false
 }));
 
-app.get('/', function(){
-	console.log("Hello!");
+app.get('/', function() {
+    console.log("Hello!");
 });
 
 var connection = mysql.createConnection({
-  host     : keys.mysql.url,
-  user     : keys.mysql.username,
-  password : keys.mysql.password,
-  database : keys.mysql.database,
-  port : 3306
+    host: keys.mysql.url,
+    user: keys.mysql.username,
+    password: keys.mysql.password,
+    database: keys.mysql.database,
+    port: 3306
 });
 
-connection.connect(function(err){
-if(!err) {
-  console.log("Database is connected ... \n");    
-} else {
-  console.log("Error connecting database ... \n");    
-}
+connection.connect(function(err) {
+    if (!err) {
+        console.log("Database is connected ... \n");
+    } else {
+        console.log("Error connecting database ... \n");
+    }
 });
 
 getStationDetails(connection);
 
 var dbRows;
+
 function getStationDetails(connection) {
-  connection.query('select * from stations_details', function(err, rows, fields) {
-    //Process the fields and store in a global array for use whenever required
-    dbRows = rows;
-  });
+    connection.query('select * from stations_details', function(err, rows, fields) {
+        //Process the fields and store in a global array for use whenever required
+        dbRows = rows;
+    });
 }
 
 app.listen(app.get('port'), function() {
-  console.log("Main server started on port: " + app.get('port'));
+    console.log("Main server started on port: " + app.get('port'));
 });
 
 
@@ -72,21 +74,21 @@ app.post('/getClosestPoints', function(req, res) {
 
     //Convert the station_details into FeatureCollection.<Point> format so that it was be used with turf for getting the closest points
     var points = {
-      "type": "FeatureCollection",
-      "features": []
+        "type": "FeatureCollection",
+        "features": []
     };
 
     for (var i = 0; i < dbRows.length; i++) {
-      var feature = {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-          "type": "Point",
-          "coordinates": [dbRows[i].latitude, dbRows[i].longitude]
-        }
-      };
+        var feature = {
+            "type": "Feature",
+            "properties": {},
+            "geometry": {
+                "type": "Point",
+                "coordinates": [dbRows[i].latitude, dbRows[i].longitude]
+            }
+        };
 
-      points.features.push(feature);
+        points.features.push(feature);
     }
 
     console.log(findClosestAndNearestPoint);
@@ -105,14 +107,66 @@ app.post('/getRoutes', function(req, res) {
     var dest = [data.dest.lat, data.dest.lng];
 
     //Directions API - Find routes for the selected source station and destination and send the result to the iOS app
-    
-    findRoutes.getRoutes(res, src, dest);
+
+    findRoutes.getRoutes(src, dest, function(err, results) {
+        if (err) {
+            console.log(err);
+            return res.status(400).send("error");
+        }
+
+        var resultsJSON = JSON.parse(results);
+        var polylines = [];
+        for (var i = 0; i < resultsJSON.routes.length; i++) {
+            polylines.push(resultsJSON.routes[i].geometry);
+        }
+
+        // console.log(polylines);
+
+        // polylines.push('w_pfFt%60elVq%40Qt%40ObAg'); //To test multiple
+
+        findSurfaceDetails.getSurfaceDetails(polylines, function(err, results) {
+            // Process the result
+            if (err) {
+                console.log(err);
+                return res.status(400).send("error");
+            }
+
+
+            var surfaceJSONresults = [];
+            for (var i = 0; i < results.length; i++) {
+              var temp = JSON.parse(results[i]);
+              surfaceJSONresults.push(temp);
+            }
+
+            var routesAndSurface = {
+                routes: resultsJSON.routes,
+                surfaceDetails: surfaceJSONresults
+            };
+            return res.status(200).send(routesAndSurface);
+
+        });
+    });
 });
 
 
+app.post('/getSurfaceDetails', function(req, res) {
+    var data = req.body.data;
+    //data contains the lat and long of the src and destination points
 
+    var polylines = data.polylines; //Polyline array. One polyline for each route.
+    // var src = [data.src.lat, data.src.lng];
+    // var dest = [data.dest.lat, data.dest.lng];
 
+    findSurfaceDetails.getSurfaceDetails(polylines, function(err, results) {
+        // Process the result
+        if (err) {
+            console.log(err);
+            return res.status(400).send("error");
+        }
+        return res.status(200).send(results);
 
+    });
+});
 
 // Turf - Find the nearest station to the source and the nearest station to the destination
 // Weigh the stations based on the current number of available bikes
@@ -123,4 +177,4 @@ app.post('/getRoutes', function(req, res) {
 //Directions API - Find routes for the selected source station and destination and send the result to the iOS app
 
 
-//Surface API - Find the terrain for the routes returned by the directions API. For each of the routes. 
+//Surface API - Find the terrain for the routes returned by the directions API. For each of the routes.
