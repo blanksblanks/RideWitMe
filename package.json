@@ -5,13 +5,13 @@
   "author": "A Team",
   "license": "MIT",
   "scripts": {
-    "start": "node server.js",
+    "start": "node mainServer.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
     "node": "~4.2.1"
   },
-  "dependency": {
+  "dependencies": {
     "async": "~1.4.2",
     "aws-sdk": "~2.2.19",
     "body-parser": "1.14.0",
@@ -19,9 +19,7 @@
     "express": "~4.13.3",
     "morgan": "~1.6.1",
     "npm": "~2.14.7",
-    "request": "~2.65.0"
-  },
-  "dependencies": {
+    "request": "~2.65.0",
     "fs": "0.0.2",
     "mysql": "^2.10.0"
   }
