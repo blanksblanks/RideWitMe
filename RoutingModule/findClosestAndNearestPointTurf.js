@@ -4,7 +4,7 @@ var request = require('request');
 var turf = require('turf');
 
 var pointsInsidePolygon = function(polygon, points) {
-    console.log(polygon);
+    // console.log(polygon);
     var searchWithin = {
       "type": "FeatureCollection",
       "features": [
@@ -34,14 +34,14 @@ var pointsInsidePolygon = function(polygon, points) {
 
 
 function getPolygonCoordinates(point) {
-    console.log(point);
+    // console.log(point);
     var lat = parseFloat(point[0]);
     var lng = parseFloat(point[1]);
     var polygonCoordinates = [[
-      [lat-0.05,lng-0.05],
-      [lat+0.05,lng-0.05],
-      [lat-0.05,lng+0.05],
-      [lat+0.05,lng+0.05]
+      [lat-0.005,lng-0.005],
+      [lat+0.005,lng-0.005],
+      [lat-0.005,lng+0.005],
+      [lat+0.005,lng+0.005]
     ]];
     return polygonCoordinates;
 };
@@ -79,16 +79,27 @@ var pointNearest = function(featurePoint, closestPoints) {
 
 function getClosestAndNearestPoint(src, dest, allPoints) {
     var closestPoints = getClosestPoints(src, dest, allPoints);
-    // console.log("Closest points");
-    // console.log(closestPoints);
-    // console.log(closestPoints.pointsNearSrc.features[0]);
-    // console.log(closestPoints.pointsNearDest.features[0]);
+
     //Closest points are of the form FeatureCollection.<Point>
 
     var nearestSrcPoint = pointNearest(convertPointToFeaturePoint(src), closestPoints.pointsNearSrc);
     var nearestDestPoint = pointNearest(convertPointToFeaturePoint(dest), closestPoints.pointsNearDest);
 
-    return {nearestSrcPoint:nearestSrcPoint, nearestDestPoint:nearestDestPoint, pointsNearSrc: closestPoints.pointsNearSrc, pointsNearDest: closestPoints.pointsNearDest};
+    //Convert the FeatureCollection point into array of lat,lng
+    var src = nearestSrcPoint.geometry.coordinates;
+    var dest = nearestDestPoint.geometry.coordinates;
+
+    var srcClosePoints = [];
+    var destClosePoints = [];
+    for (var i=0; i < closestPoints.pointsNearSrc.features.length; i++) {
+        srcClosePoints.push(closestPoints.pointsNearSrc.features[i].geometry.coordinates);
+    }
+
+    for (var i=0; i < closestPoints.pointsNearDest.features.length; i++) {
+        destClosePoints.push(closestPoints.pointsNearDest.features[i].geometry.coordinates);
+    }
+
+    return {nearestSrcPoint:nearestSrcPoint, nearestDestPoint:nearestDestPoint, pointsCloseToSrc: srcClosePoints, pointsCloseToDest: destClosePoints};
 }
 
 

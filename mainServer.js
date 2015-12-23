@@ -69,8 +69,7 @@ app.post('/getClosestPoints', function(req, res) {
     var src = [data.src.lat, data.src.lng];
     var dest = [data.dest.lat, data.dest.lng];
 
-    // Turf - Find the closest 3 stations for the given source and given destination
-    // in the request
+    // Turf - Find the closest 3 stations for the given source and given destination  in the request
 
     //Convert the station_details into FeatureCollection.<Point> format so that it was be used with turf for getting the closest points
     var points = {
@@ -91,12 +90,70 @@ app.post('/getClosestPoints', function(req, res) {
         points.features.push(feature);
     }
 
-    console.log(findClosestAndNearestPoint);
+    // console.log(findClosestAndNearestPoint);
     var closestAndNearestPoints = findClosestAndNearestPoint.getClosestAndNearestPoint(src, dest, points);
 
-    return res.status(200).send(closestAndNearestPoints);
+    //Find Availability of bikes at the specific point
 
+    getCurrentStationStatus(function(err, stationStatuses) {
+        var srcPts = [];
+        var destPts = [];
+        for (var j = 0; j < stationStatuses.stationBeanList.length; j++) {
+            for (var k = 0; k < closestAndNearestPoints.pointsCloseToSrc.length; k++) {
+                if ((stationStatuses.stationBeanList[j].latitude.toFixed(6) === closestAndNearestPoints.pointsCloseToSrc[k][0].toFixed(6)) &&
+                    (stationStatuses.stationBeanList[j].longitude.toFixed(6) === closestAndNearestPoints.pointsCloseToSrc[k][1].toFixed(6))) {
+                    var srcPt = {
+                      latlon: closestAndNearestPoints.pointsCloseToSrc[k],
+                      availableBikes: stationStatuses.stationBeanList[j].availableBikes,
+                      availableDocks: stationStatuses.stationBeanList[j].availableDocks
+                    }
+                    srcPts.push(srcPt);
+                    // srcBikes.push(stationStatuses.stationBeanList[j].availableBikes);
+                    // srcDocks.push(stationStatuses.stationBeanList[j].availableDocks);
+                }
+            }
+
+            for (var l = 0; l < closestAndNearestPoints.pointsCloseToDest.length; l++) {
+                if ((stationStatuses.stationBeanList[j].latitude.toFixed(6) == closestAndNearestPoints.pointsCloseToDest[l][0].toFixed(6)) &&
+                    (stationStatuses.stationBeanList[j].longitude.toFixed(6) == closestAndNearestPoints.pointsCloseToDest[l][1].toFixed(6))) {
+                    var destPt = {
+                      latlon: closestAndNearestPoints.pointsCloseToDest[l],
+                      availableBikes: stationStatuses.stationBeanList[j].availableBikes,
+                      availableDocks: stationStatuses.stationBeanList[j].availableDocks
+                    }
+                    destPts.push(destPt);
+                    // destBikes.push(stationStatuses.stationBeanList[j].availableBikes);
+                    // destDocks.push(stationStatuses.stationBeanList[j].availableDocks);
+                }
+            }
+        }
+
+        var closestNearestPointsAndAvailability = {
+            closestSrcPoints: srcPts,
+            nearestSrcPoint: closestAndNearestPoints.nearestSrcPoint.geometry.coordinates,
+            closestDestPoints: destPts,
+            nearestDestPoint: closestAndNearestPoints.nearestDestPoint.geometry.coordinates
+        };
+
+        return res.status(200).send(closestNearestPointsAndAvailability);
+    });
 });
+
+
+function getCurrentStationStatus(cb) {
+    request.post('http://www.citibikenyc.com/stations/json', {
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        form: {
+            outputMode: "json"
+        },
+        json: true
+    }, function(err, res, resultBody) {
+        var body = JSON.parse(JSON.stringify(resultBody));
+        return cb(err, body);
+    });
+}
 
 
 app.post('/getRoutes', function(req, res) {
@@ -134,8 +191,8 @@ app.post('/getRoutes', function(req, res) {
 
             var surfaceJSONresults = [];
             for (var i = 0; i < results.length; i++) {
-              var temp = JSON.parse(results[i]);
-              surfaceJSONresults.push(temp);
+                var temp = JSON.parse(results[i]);
+                surfaceJSONresults.push(temp);
             }
 
             var routesAndSurface = {
