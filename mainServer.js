@@ -65,9 +65,16 @@ app.listen(app.get('port'), function() {
 app.post('/getClosestPoints', function(req, res) {
     var data = req.body.data;
 
+    // console.log(req.body);
+    var data = req.body;
     //data contains the lat and long of the src and destination points
-    var src = [data.src.lat, data.src.lng];
-    var dest = [data.dest.lat, data.dest.lng];
+
+    var src = [data.srclat, data.srclng];
+    var dest = [data.destlat, data.destlng];
+
+    //data contains the lat and long of the src and destination points
+    // var src = [data.src.lat, data.src.lng];
+    // var dest = [data.dest.lat, data.dest.lng];
 
     // Turf - Find the closest 3 stations for the given source and given destination  in the request
 
@@ -157,11 +164,14 @@ function getCurrentStationStatus(cb) {
 
 
 app.post('/getRoutes', function(req, res) {
-    var data = req.body.data;
+    // console.log(req.body);  
+    // var data = Object.keys(req.body);
+    // console.log(req.body);
+    var data = req.body;
     //data contains the lat and long of the src and destination points
 
-    var src = [data.src.lat, data.src.lng];
-    var dest = [data.dest.lat, data.dest.lng];
+    var src = [data.srclat, data.srclng];
+    var dest = [data.destlat, data.destlng];
 
     //Directions API - Find routes for the selected source station and destination and send the result to the iOS app
 
@@ -179,7 +189,7 @@ app.post('/getRoutes', function(req, res) {
 
         // console.log(polylines);
 
-        // polylines.push('w_pfFt%60elVq%40Qt%40ObAg'); //To test multiple
+        polylines.push('w_pfFt%60elVq%40Qt%40ObAg'); //To test multiple
 
         findSurfaceDetails.getSurfaceDetails(polylines, function(err, results) {
             // Process the result

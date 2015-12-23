@@ -19,15 +19,8 @@ var pointsInsidePolygon = function(polygon, points) {
       ]
     };
 
-
-    // console.log("Inside pointsInsidePolygon");
-    // console.log(points.features[0]);
-    // console.log(searchWithin.features[0].geometry.coordinates);
-
     var ptsWithin = turf.within(points, searchWithin);
 
-    // console.log("Pts within");
-    // console.log(ptsWithin);
     return ptsWithin;
 };
 
@@ -38,11 +31,12 @@ function getPolygonCoordinates(point) {
     var lat = parseFloat(point[0]);
     var lng = parseFloat(point[1]);
     var polygonCoordinates = [[
-      [lat-0.005,lng-0.005],
-      [lat+0.005,lng-0.005],
-      [lat-0.005,lng+0.005],
-      [lat+0.005,lng+0.005]
+      [lat-0.05,lng-0.05],
+      [lat+0.05,lng-0.05],
+      [lat-0.05,lng+0.05],
+      [lat+0.05,lng+0.05]
     ]];
+
     return polygonCoordinates;
 };
 
@@ -50,6 +44,9 @@ function getPolygonCoordinates(point) {
 var getClosestPoints = function(src, dest, allPoints) {
     var pointsNearSrc = pointsInsidePolygon(getPolygonCoordinates(src), allPoints);
     var pointsNearDest = pointsInsidePolygon(getPolygonCoordinates(dest), allPoints);
+
+    console.log(pointsNearSrc);
+    console.log(pointsNearDest);
 
     return { pointsNearSrc: pointsNearSrc, pointsNearDest: pointsNearDest};
 };
@@ -63,7 +60,7 @@ var convertPointToFeaturePoint = function(nonFeaturePoint) {
       },
       "geometry": {
         "type": "Point",
-        "coordinates": [nonFeaturePoint.lat, nonFeaturePoint.lng]
+        "coordinates": [parseFloat(nonFeaturePoint[0]), parseFloat(nonFeaturePoint[1])]
       }
     };
 
