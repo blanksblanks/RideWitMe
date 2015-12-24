@@ -4,7 +4,7 @@ var request = require('request');
 var keys = require('./../config/access.js');
 
 
-var getRoutes = function(src, dest, cb) {
+var getRoutes = function(src, dest, isPolyline, cb) {
     console.log("getRoutes");
     var baseUrl = "https://api.mapbox.com/v4/directions/";
     var typeOfTransport = "mapbox.cycling/";
@@ -19,10 +19,16 @@ var getRoutes = function(src, dest, cb) {
     var waypoints = srcLng + "," + srcLat + ";" + destLng + "," + destLat;
     var access_token = keys.mapbox.apiKey;
 
-    var completeUrl = baseUrl + typeOfTransport + waypoints 
+    if (isPolyline) {
+        var completeUrl = baseUrl + typeOfTransport + waypoints 
         + ".json?alternatives=true&instructions=html&geometry=polyline&steps=true&access_token=" 
         + access_token;
-
+    } else {
+        var completeUrl = baseUrl + typeOfTransport + waypoints 
+        + ".json?alternatives=true&instructions=html&steps=true&access_token=" 
+        + access_token;
+    }
+    
     // console.log(completeUrl);
 
     request.get(completeUrl, {
